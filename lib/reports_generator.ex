@@ -10,11 +10,18 @@
 defmodule ReportsGenerator do
   def build(filename) do
     "reports/#{filename}"
-    |> File.read()
-    |> handle_reponse()
+    |> File.stream!()
+    |> Enum.reduce(%{}, fn line, map ->
+      [id, _food, price] = parse_line(line)
+      Map.put(map, id, price)
+    end)
   end
 
-  defp handle_reponse({:ok, response}),do: response
-  defp handle_reponse({:error, _response}),do: "No find file"
+  defp parse_line(line) do
+    line
+    |> String.trim()
+    |> String.split(",")
+    |> List.update_at(2, &String.to_integer/1)
+  end
 
 end
