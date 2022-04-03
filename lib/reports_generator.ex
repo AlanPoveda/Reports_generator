@@ -21,6 +21,25 @@ defmodule ReportsGenerator do
     |> Enum.reduce(report_acc(), fn line, report -> sum_values(line, report) end)
   end
 
+  # Agora Build em paralelo, assim podendo reduzir o tempo de resposta
+  def build_parallel(files_names) do
+    files_names
+    |> Task.async_stream(&build/1) #chamando a função de cima, e ainda percorrendo
+    |> Enum.reduce(report_acc(), fn {:ok , result}, report -> sum_reports(report, result) end)
+  end
+
+  # Somar os reports que
+  defp sum_reports(%{"foods" => foods1, "users" => users1}, %{"foods" => foods2, "users" => users2}) do
+    foods = merge_reports(foods1, foods2)
+    users = merge_reports(users1, users2)
+    %{"foods" => foods, "users" => users}
+  end
+
+  # Merge the reports
+  defp merge_reports(map1, map2) do
+    Map.merge(map1, map2, fn _key, value1, value2 -> value1 + value2 end)
+  end
+
   # Aqui ele já recebe a lista toda e ainda retorna o valor maior
   def higher_value(record, option) when option in @options do
    {:ok, Enum.max_by(record[option], fn {_key, value} -> value end)}
