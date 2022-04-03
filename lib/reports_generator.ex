@@ -13,6 +13,8 @@ defmodule ReportsGenerator do
     "sushi"
   ]
 
+  @options ["users", "foods"]
+
   def build(filename) do
     filename
     |> Parse.parse_file()
@@ -20,7 +22,12 @@ defmodule ReportsGenerator do
   end
 
   # Aqui ele já recebe a lista toda e ainda retorna o valor maior
-  def higher_value(record, option), do: Enum.max_by(record[option], fn {_key, value} -> value end)
+  def higher_value(record, option) when option in @options do
+   {:ok, Enum.max_by(record[option], fn {_key, value} -> value end)}
+  end
+
+  #Tratativa de erro, se não tiver a opção valida
+  def higher_value(_record, _option), do: {:error, "Invalid option!"}
 
   # Aqui ele soma os valores e ainda retorna um map novo
   defp sum_values([id, food_name, price], %{"foods" => foods, "users" => users} = report) do
